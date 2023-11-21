@@ -13,6 +13,9 @@ from lm_eval import evaluator, utils
 from lm_eval.tasks import initialize_tasks, include_path
 from lm_eval.api.registry import ALL_TASKS
 
+from lm_eval.tasks import include_task_folder
+include_task_folder("/net/nfs.cirrascale/allennlp/davidw/proj/science-instruct/science-adapt/eval/tasks")
+
 
 def _handle_non_serializable(o):
     if isinstance(o, np.int64) or isinstance(o, np.int32):
