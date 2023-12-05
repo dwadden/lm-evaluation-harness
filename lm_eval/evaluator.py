@@ -327,6 +327,7 @@ def evaluate(
                 cloned_reqs.extend([req] * req.repeats)
 
         # run requests through model
+        # NOTE(wadden) These are the outputs.
         resps = getattr(lm, reqtype)(cloned_reqs)
 
         # put responses from model into a list of length K for each request.
@@ -348,6 +349,7 @@ def evaluate(
     ### Collect values of metrics on all datapoints ###
     vals = collections.defaultdict(list)
 
+    # NOTE(dwadden) Can look at the predictions here.
     # unpack results and sort back in order and return control to Task
     for task_name, task in task_dict.items():
         if type(task) == tuple:
