@@ -154,9 +154,9 @@ class LM(abc.ABC):
 
 
 ### SQLite-based caching of LM responses
-def hash_args(attr, args):
-    dat = json.dumps([attr] + list(args))
-    return hashlib.sha256(dat.encode("utf-8")).hexdigest()
+def hash_args(attr, req):
+    # NOTE(wadden) Use the instance ID as a key instead.
+    return req.doc["_instance_id"]
 
 
 class CacheHook:
@@ -168,10 +168,11 @@ class CacheHook:
         self.dbdict = cachinglm.dbdict
 
     def add_partial(self, attr, req, res) -> None:
-        if self.dbdict is None:
-            return
-        hsh = hash_args(attr, req)
-        self.dbdict[hsh] = res
+        pass
+        # if self.dbdict is None:
+        #     return
+        # hsh = hash_args(attr, req)
+        # self.dbdict[hsh] = res
 
 
 class CachingLM:
@@ -206,7 +207,7 @@ class CachingLM:
                 f"Loading '{attr}' responses from cache '{self.cache_db}' where possible..."
             )
             for req in tqdm(requests):
-                hsh = hash_args(attr, req.args)
+                hsh = hash_args(attr, req)
                 if attr == "generate_until" and req.args[1].get("do_sample", False):
                     # when we are doing non-greedy generation, don't use the cache
                     # (else every "randomly sampled" generation would be identical for repeats > 1).
@@ -239,7 +240,7 @@ class CachingLM:
                 res[resptr] = r
 
                 # caching
-                hsh = hash_args(attr, req.args)
+                hsh = hash_args(attr, req)
                 self.dbdict[hsh] = r
             self.dbdict.commit()
 
