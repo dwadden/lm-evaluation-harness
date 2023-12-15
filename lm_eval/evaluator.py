@@ -41,6 +41,7 @@ def simple_evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    predict_only: bool = False,
     gen_kwargs: str = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -72,6 +73,8 @@ def simple_evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param predict_only: bool
+        If True, make predictions but don't do evaluation.
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
@@ -157,6 +160,7 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
+        predict_only=predict_only
     )
 
     if lm.rank == 0:
@@ -194,6 +198,7 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
+    predict_only: bool = False
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -209,6 +214,8 @@ def evaluate(
         If True, write out an example document and model input for checking task integrity
     :param log_samples: bool
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
+    :param predict_only: bool
+        If True, make predictions and then exit.
     :return
         Dictionary of results
     """
@@ -336,6 +343,11 @@ def evaluate(
 
         if lm.world_size > 1:
             lm.accelerator.wait_for_everyone()
+
+    # NOTE(wadden) If we're only making predictions, exit here.
+    if predict_only:
+        print("Done making predictions; exiting.")
+        exit()
 
     ### Postprocess outputs ###
     # TODO: del model here, maybe (idea: allow user to specify device of e.g. reward model separately)

@@ -13,9 +13,6 @@ from lm_eval import evaluator, utils
 from lm_eval.tasks import initialize_tasks, include_path
 from lm_eval.api.registry import ALL_TASKS
 
-from lm_eval.tasks import include_task_folder
-include_task_folder("/net/nfs.cirrascale/allennlp/davidw/proj/science-instruct/science-adapt/eval/tasks")
-
 
 def _handle_non_serializable(o):
     if isinstance(o, np.int64) or isinstance(o, np.int32):
@@ -122,6 +119,11 @@ def parse_eval_args() -> argparse.Namespace:
         default="INFO",
         help="Log error when tasks are not registered.",
     )
+    parser.add_argument(
+        "--predict_only",
+        action="store_true",
+        help="If given, only do prediction; don't evaluate."
+    )
     return parser.parse_args()
 
 
@@ -221,6 +223,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         check_integrity=args.check_integrity,
         write_out=args.write_out,
         log_samples=args.log_samples,
+        predict_only=args.predict_only,
         gen_kwargs=args.gen_kwargs,
     )
 
