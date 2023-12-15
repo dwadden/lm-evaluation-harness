@@ -124,6 +124,11 @@ def parse_eval_args() -> argparse.Namespace:
         action="store_true",
         help="If given, only do prediction; don't evaluate."
     )
+    parser.add_argument(
+        "--eval_only",
+        action="store_true",
+        help="If given, only run evaluation based on previously cache predictions."
+    )
     return parser.parse_args()
 
 
@@ -224,6 +229,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         write_out=args.write_out,
         log_samples=args.log_samples,
         predict_only=args.predict_only,
+        eval_only=args.eval_only,
         gen_kwargs=args.gen_kwargs,
     )
 

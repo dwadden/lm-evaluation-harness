@@ -9,7 +9,7 @@ import hashlib
 
 from tqdm import tqdm
 
-from lm_eval import utils
+from lm_eval import utils, api
 
 import logging
 
@@ -229,6 +229,13 @@ class CachingLM:
                     remaining_reqs.append(req)
 
             # actually run the LM on the requests that do not have cached results
+
+            # If we're using a dummy lm for eval only, make sure there's no new
+            # requests.
+            if isinstance(self.lm, api.registry.get_model("dummy")):
+                if len(remaining_reqs):
+                    raise Exception("Shouldn't have any remaining.")
+
             rem_res = getattr(self.lm, attr)(remaining_reqs)
 
             # stick the new ones back into the list and also cache any of the new ones

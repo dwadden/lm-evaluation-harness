@@ -42,6 +42,7 @@ def simple_evaluate(
     write_out: bool = False,
     log_samples: bool = True,
     predict_only: bool = False,
+    eval_only: bool = False,
     gen_kwargs: str = None,
 ):
     """Instantiate and evaluate a model on a list of tasks.
@@ -75,6 +76,8 @@ def simple_evaluate(
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :param predict_only: bool
         If True, make predictions but don't do evaluation.
+    :param eval_only: bool
+        If True, run evaluations on cached predictions only; don't load the model.
     :param gen_kwargs: str
         String arguments for model generation
         Ignored for all tasks with loglikelihood output_type
@@ -99,20 +102,23 @@ def simple_evaluate(
         if gen_kwargs == "":
             gen_kwargs = None
 
-    if isinstance(model, str):
-        if model_args is None:
-            model_args = ""
-        lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
-            model_args,
-            {
-                "batch_size": batch_size,
-                "max_batch_size": max_batch_size,
-                "device": device,
-            },
-        )
+    if eval_only:
+        lm = lm_eval.api.registry.get_model("dummy").create_from_arg_string("", {})
     else:
-        assert isinstance(model, lm_eval.api.model.LM)
-        lm = model
+        if isinstance(model, str):
+            if model_args is None:
+                model_args = ""
+            lm = lm_eval.api.registry.get_model(model).create_from_arg_string(
+                model_args,
+                {
+                    "batch_size": batch_size,
+                    "max_batch_size": max_batch_size,
+                    "device": device,
+                },
+            )
+        else:
+            assert isinstance(model, lm_eval.api.model.LM)
+            lm = model
 
     if use_cache is not None:
         print(f"Using cache at {use_cache + '_rank' + str(lm.rank) + '.db'}")
@@ -160,7 +166,8 @@ def simple_evaluate(
         decontamination_ngrams_path=decontamination_ngrams_path,
         write_out=write_out,
         log_samples=log_samples,
-        predict_only=predict_only
+        predict_only=predict_only,
+        eval_only=eval_only
     )
 
     if lm.rank == 0:
@@ -198,7 +205,8 @@ def evaluate(
     decontamination_ngrams_path=None,
     write_out: bool = False,
     log_samples: bool = True,
-    predict_only: bool = False
+    predict_only: bool = False,
+    eval_only: bool = False
 ):
     """Instantiate and evaluate a model on a list of tasks.
 
@@ -216,6 +224,8 @@ def evaluate(
         If True, write out all model outputs and documents for per-sample measurement and post-hoc analysis
     :param predict_only: bool
         If True, make predictions and then exit.
+    :param eval_only: bool
+        If True, evaluate using cached predictions.
     :return
         Dictionary of results
     """
