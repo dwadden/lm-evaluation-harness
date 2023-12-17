@@ -1,4 +1,5 @@
 import re
+import json
 
 from lm_eval.api.filter import Filter
 
@@ -60,3 +61,28 @@ class WhitespaceFilter(Filter):
         filtered_resps = [filter_set(resp) for resp in resps]
 
         return filtered_resps
+
+
+class ExtractJSONFilter(Filter):
+    "Extract json from response. If no json is found, return an empty response."
+    def __init__(self, default) -> None:
+        self.default = default
+
+    def apply(self, resps, docs):
+        def filter_set(inst):
+            if len(inst) > 1:
+                raise ValueError("Expected a single response.")
+            resp = inst[0]
+            try:
+                filtered_resp = json.loads(resp)
+            except json.JSONDecodeError:
+                filtered_resp = self.default
+            
+            # Convert back to string so it's the same type as gold.
+            return json.dumps(filtered_resp)
+
+        filtered_resps = [filter_set(resp) for resp in resps]
+
+        return filtered_resps
+
+
