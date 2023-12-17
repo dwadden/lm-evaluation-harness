@@ -231,6 +231,7 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
         predict_only=args.predict_only,
         eval_only=args.eval_only,
         gen_kwargs=args.gen_kwargs,
+        bootstrap_iters=10         # NOTE(dwadden) Let's not worry about uncertainty for now.
     )
 
     if results is not None:
