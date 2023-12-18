@@ -521,6 +521,9 @@ def evaluate(
                 else:
                     results[task_name][metric + "_stderr" + "," + key] = "N/A"
 
+        # NOTE(wadden) Just return results here; things get messed up with dict outputs.
+        return results
+
         if bool(results):
             for group, task_list in reversed(task_hierarchy.items()):
                 if task_list == []:
