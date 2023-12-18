@@ -261,9 +261,9 @@ def cli_evaluate(args: Union[argparse.Namespace, None] = None) -> None:
             f"{args.model} ({args.model_args}), gen_kwargs: ({args.gen_kwargs}), limit: {args.limit}, num_fewshot: {args.num_fewshot}, "
             f"batch_size: {args.batch_size}{f' ({batch_sizes})' if batch_sizes else ''}"
         )
-        print(evaluator.make_table(results))
-        if "groups" in results:
-            print(evaluator.make_table(results, "groups"))
+        # print(evaluator.make_table(results))
+        # if "groups" in results:
+        #     print(evaluator.make_table(results, "groups"))
 
 
 if __name__ == "__main__":

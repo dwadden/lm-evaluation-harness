@@ -1126,10 +1126,6 @@ class ConfigurableTask(Task):
                 gold = type(result)(gold)
 
             for metric in self._metric_fn_list.keys():
-                # Keep track of whether to add the result score at the end; don't do
-                # this if we've previously added multiple metrics.
-                add_result_score = True
-
                 if self.multiple_target:
                     # in the case where we have multiple targets,
                     # return true if any are true
@@ -1172,23 +1168,15 @@ class ConfigurableTask(Task):
                     ):  # needed for now in order to use a different interface between our own metrics and HF Evaluate metrics
                         result_score = self._metric_fn_list[metric]([gold, result])
                     if isinstance(result_score, dict):
-                        # NOTE(wadden) This is a hack to explicitly pass in a list of
-                        # metrics to return if desired.
-                        return_metrics = getattr(
-                            self._metric_fn_list[metric].__self__, "_return_metrics", None
+                        # NOTE(wadden) Return full dict if requested; else just a single metric.
+                        return_dict = getattr(
+                            self._metric_fn_list[metric].__self__, "_return_dict", False
                         )
-                        if return_metrics is not None:
-                            # NOTE(wadden) If this metric returns multiple metrics, add
-                            # them all to the results here.
-                            add_result_score = False
-                            for metric_name in return_metrics:
-                                result_dict[f"{metric}::{metric_name}"] = result_score[metric_name]
-                        else:
-                            # TODO: this handles the case where HF evaluate returns a dict.
+
+                        if not return_dict:
                             result_score = result_score[metric]
 
-                if add_result_score:
-                    result_dict[metric] = result_score
+                result_dict[metric] = result_score
         else:
             raise ValueError(
                 f"Passed invalid output_type '{self.OUTPUT_TYPE}' ! Please use one of ",
