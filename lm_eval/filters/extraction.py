@@ -1,5 +1,6 @@
 import re
 import json
+from collections import Counter
 
 from lm_eval.api.filter import Filter
 
@@ -68,7 +69,43 @@ class ExtractJSONFilter(Filter):
     def __init__(self, default) -> None:
         self.default = default
 
+    def _find_json(self, text):
+        """
+        Find and parse the first valid JSON appearing in a mixed text.
+        """
+        if isinstance(self.default, dict):
+            start_delim, end_delim = ("{", "}")
+        elif isinstance(self.default, list):
+            start_delim, end_delim = ("[", "]")
+        else:
+            raise ValueError("Unexpected default type.")
+
+        depth = 0
+        start_index = -1
+
+        for i, char in enumerate(text):
+            if char == start_delim:
+                if depth == 0:
+                    start_index = i
+                depth += 1
+            elif char == end_delim:
+                depth -= 1
+                if depth == 0 and start_index != -1:
+                    try:
+                        json_obj = json.loads(text[start_index:i + 1])
+                    except json.JSONDecodeError:
+                        start_index = -1  # Reset the start index and keep going.
+                    else:
+                        return json_obj, "extract_success"
+
+        # If we get to the end without finding anything, return default.
+        return self.default, "extract_failure"
+
     def apply(self, resps, docs):
+        # Keep track of the final status for each. We don't use this right now, but
+        # could at some point.
+        counts = Counter()
+
         def filter_set(inst):
             if len(inst) > 1:
                 raise ValueError("Expected a single response.")
@@ -76,7 +113,11 @@ class ExtractJSONFilter(Filter):
             try:
                 filtered_resp = json.loads(resp)
             except json.JSONDecodeError:
-                filtered_resp = self.default
+                filtered_resp, status = self._find_json(resp)
+            else:
+                status = "valid"
+
+            counts[status] += 1
 
             # If the keys are wrong, use the default.
             if isinstance(self.default, dict):
@@ -89,5 +130,3 @@ class ExtractJSONFilter(Filter):
         filtered_resps = [filter_set(resp) for resp in resps]
 
         return filtered_resps
-
-
