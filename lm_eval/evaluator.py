@@ -502,10 +502,7 @@ def evaluate(
             else:
                 group_name = None
 
-            # NOTE(wadden) Hack to work with multiple sub-metrics.
-            agg_key = metric.split("::")[0] if "::" in metric else metric
-            agg_fn = task.aggregation()[agg_key]
-
+            agg_fn = task.aggregation()[metric]
             results[task_name][metric_key] = agg_fn(items)
             results[task_name]["samples"] = len(items)
 
@@ -513,7 +510,7 @@ def evaluate(
             # so we run them less iterations. still looking for a cleaner way to do this
             if bootstrap_iters > 0:
                 stderr = lm_eval.api.metrics.stderr_for_metric(
-                    metric=task.aggregation()[agg_key],
+                    metric=task.aggregation()[metric],
                     bootstrap_iters=min(bootstrap_iters, 100)
                     if metric in ["bleu", "chrf", "ter"]
                     else bootstrap_iters,

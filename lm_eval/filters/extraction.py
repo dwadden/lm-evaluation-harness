@@ -77,6 +77,11 @@ class ExtractJSONFilter(Filter):
                 filtered_resp = json.loads(resp)
             except json.JSONDecodeError:
                 filtered_resp = self.default
+
+            # If the keys are wrong, use the default.
+            if isinstance(self.default, dict):
+                if set(self.default.keys()) != set(filtered_resp.keys()):
+                    filtered_resp = self.default
             
             # Convert back to string so it's the same type as gold.
             return json.dumps(filtered_resp)

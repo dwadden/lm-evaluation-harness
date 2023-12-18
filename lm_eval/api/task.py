@@ -1185,7 +1185,9 @@ class ConfigurableTask(Task):
                             self._metric_fn_list[metric].__self__, "_return_dict", False
                         )
 
-                        if not return_dict:
+                        # If we didn't ask to return a dict and the metric is available
+                        # in the result score, use it.
+                        if not return_dict and metric in result_score:
                             result_score = result_score[metric]
 
                 result_dict[metric] = result_score
